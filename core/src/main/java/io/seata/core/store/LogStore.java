@@ -59,12 +59,28 @@ public interface LogStore {
     boolean insertGlobalTransactionDO(GlobalTransactionDO globalTransactionDO);
 
     /**
+     * Insert global transaction history do boolean.
+     *
+     * @param globalTransactionDO the global transaction do
+     * @return the boolean
+     */
+    boolean insertGlobalTransactionDOHistory(GlobalTransactionDO globalTransactionDO);
+
+    /**
      * Update global transaction do boolean.
      *
      * @param globalTransactionDO the global transaction do
      * @return the boolean
      */
     boolean updateGlobalTransactionDO(GlobalTransactionDO globalTransactionDO);
+
+    /**
+     * Update global transaction history do boolean.
+     *
+     * @param globalTransactionDO the global transaction do
+     * @return the boolean
+     */
+    boolean updateGlobalTransactionDOHistory(GlobalTransactionDO globalTransactionDO);
 
     /**
      * Delete global transaction do boolean.
@@ -99,12 +115,28 @@ public interface LogStore {
     boolean insertBranchTransactionDO(BranchTransactionDO branchTransactionDO);
 
     /**
+     * Insert branch transaction history do boolean.
+     *
+     * @param branchTransactionDO the branch transaction do
+     * @return the boolean
+     */
+    boolean insertBranchTransactionDOHistory(BranchTransactionDO branchTransactionDO);
+
+    /**
      * Update branch transaction do boolean.
      *
      * @param branchTransactionDO the branch transaction do
      * @return the boolean
      */
     boolean updateBranchTransactionDO(BranchTransactionDO branchTransactionDO);
+
+    /**
+     * Update branch transaction history do boolean.
+     *
+     * @param branchTransactionDO the branch transaction do
+     * @return the boolean
+     */
+    boolean updateBranchTransactionDOHistory(BranchTransactionDO branchTransactionDO);
 
     /**
      * Delete branch transaction do boolean.

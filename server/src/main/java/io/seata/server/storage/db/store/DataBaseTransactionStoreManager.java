@@ -15,13 +15,6 @@
  */
 package io.seata.server.storage.db.store;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.sql.DataSource;
-
 import io.seata.common.exception.StoreException;
 import io.seata.common.loader.EnhancedServiceLoader;
 import io.seata.common.util.CollectionUtils;
@@ -42,6 +35,13 @@ import io.seata.server.session.SessionCondition;
 import io.seata.server.store.AbstractTransactionStoreManager;
 import io.seata.server.store.SessionStorable;
 import io.seata.server.store.TransactionStoreManager;
+
+import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The type Database transaction store manager.
@@ -101,15 +101,23 @@ public class DataBaseTransactionStoreManager extends AbstractTransactionStoreMan
     @Override
     public boolean writeSession(LogOperation logOperation, SessionStorable session) {
         if (LogOperation.GLOBAL_ADD.equals(logOperation)) {
-            return logStore.insertGlobalTransactionDO(convertGlobalTransactionDO(session));
+            GlobalTransactionDO globalTransactionDO = convertGlobalTransactionDO(session);
+            logStore.insertGlobalTransactionDOHistory(globalTransactionDO);
+            return logStore.insertGlobalTransactionDO(globalTransactionDO);
         } else if (LogOperation.GLOBAL_UPDATE.equals(logOperation)) {
-            return logStore.updateGlobalTransactionDO(convertGlobalTransactionDO(session));
+            GlobalTransactionDO globalTransactionDO = convertGlobalTransactionDO(session);
+            logStore.updateGlobalTransactionDOHistory(globalTransactionDO);
+            return logStore.updateGlobalTransactionDO(globalTransactionDO);
         } else if (LogOperation.GLOBAL_REMOVE.equals(logOperation)) {
             return logStore.deleteGlobalTransactionDO(convertGlobalTransactionDO(session));
         } else if (LogOperation.BRANCH_ADD.equals(logOperation)) {
-            return logStore.insertBranchTransactionDO(convertBranchTransactionDO(session));
+            BranchTransactionDO branchTransactionDO = convertBranchTransactionDO(session);
+            logStore.insertBranchTransactionDOHistory(branchTransactionDO);
+            return logStore.insertBranchTransactionDO(branchTransactionDO);
         } else if (LogOperation.BRANCH_UPDATE.equals(logOperation)) {
-            return logStore.updateBranchTransactionDO(convertBranchTransactionDO(session));
+            BranchTransactionDO branchTransactionDO = convertBranchTransactionDO(session);
+            logStore.updateBranchTransactionDOHistory(branchTransactionDO);
+            return logStore.updateBranchTransactionDO(branchTransactionDO);
         } else if (LogOperation.BRANCH_REMOVE.equals(logOperation)) {
             return logStore.deleteBranchTransactionDO(convertBranchTransactionDO(session));
         } else {

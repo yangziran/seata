@@ -15,15 +15,6 @@
  */
 package io.seata.server.storage.db.store;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import javax.sql.DataSource;
-
 import io.seata.common.exception.DataAccessException;
 import io.seata.common.exception.StoreException;
 import io.seata.common.util.IOUtil;
@@ -38,6 +29,15 @@ import io.seata.core.store.LogStore;
 import io.seata.core.store.db.sql.log.LogStoreSqlsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import static io.seata.core.constants.DefaultValues.DEFAULT_STORE_DB_BRANCH_TABLE;
 import static io.seata.core.constants.DefaultValues.DEFAULT_STORE_DB_GLOBAL_TABLE;
@@ -215,8 +215,56 @@ public class LogStoreDataBaseDAO implements LogStore {
     }
 
     @Override
+    public boolean insertGlobalTransactionDOHistory(GlobalTransactionDO globalTransactionDO) {
+        String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getInsertGlobalTransactionSQL(globalTable + "_history");
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = logStoreDataSource.getConnection();
+            conn.setAutoCommit(true);
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, globalTransactionDO.getXid());
+            ps.setLong(2, globalTransactionDO.getTransactionId());
+            ps.setInt(3, globalTransactionDO.getStatus());
+            ps.setString(4, globalTransactionDO.getApplicationId());
+            ps.setString(5, globalTransactionDO.getTransactionServiceGroup());
+            String transactionName = globalTransactionDO.getTransactionName();
+            transactionName = transactionName.length() > transactionNameColumnSize ? transactionName.substring(0,
+                    transactionNameColumnSize) : transactionName;
+            ps.setString(6, transactionName);
+            ps.setInt(7, globalTransactionDO.getTimeout());
+            ps.setLong(8, globalTransactionDO.getBeginTime());
+            ps.setString(9, globalTransactionDO.getApplicationData());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new StoreException(e);
+        } finally {
+            IOUtil.close(ps, conn);
+        }
+    }
+
+    @Override
     public boolean updateGlobalTransactionDO(GlobalTransactionDO globalTransactionDO) {
         String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getUpdateGlobalTransactionStatusSQL(globalTable);
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = logStoreDataSource.getConnection();
+            conn.setAutoCommit(true);
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, globalTransactionDO.getStatus());
+            ps.setString(2, globalTransactionDO.getXid());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new StoreException(e);
+        } finally {
+            IOUtil.close(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updateGlobalTransactionDOHistory(GlobalTransactionDO globalTransactionDO) {
+        String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getUpdateGlobalTransactionStatusSQL(globalTable + "_history");
         Connection conn = null;
         PreparedStatement ps = null;
         try {
@@ -333,8 +381,54 @@ public class LogStoreDataBaseDAO implements LogStore {
     }
 
     @Override
+    public boolean insertBranchTransactionDOHistory(BranchTransactionDO branchTransactionDO) {
+        String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getInsertBranchTransactionSQL(branchTable + "_history");
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = logStoreDataSource.getConnection();
+            conn.setAutoCommit(true);
+            ps = conn.prepareStatement(sql);
+            ps.setString(1, branchTransactionDO.getXid());
+            ps.setLong(2, branchTransactionDO.getTransactionId());
+            ps.setLong(3, branchTransactionDO.getBranchId());
+            ps.setString(4, branchTransactionDO.getResourceGroupId());
+            ps.setString(5, branchTransactionDO.getResourceId());
+            ps.setString(6, branchTransactionDO.getBranchType());
+            ps.setInt(7, branchTransactionDO.getStatus());
+            ps.setString(8, branchTransactionDO.getClientId());
+            ps.setString(9, branchTransactionDO.getApplicationData());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new StoreException(e);
+        } finally {
+            IOUtil.close(ps, conn);
+        }
+    }
+
+    @Override
     public boolean updateBranchTransactionDO(BranchTransactionDO branchTransactionDO) {
         String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getUpdateBranchTransactionStatusSQL(branchTable);
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = logStoreDataSource.getConnection();
+            conn.setAutoCommit(true);
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, branchTransactionDO.getStatus());
+            ps.setString(2, branchTransactionDO.getXid());
+            ps.setLong(3, branchTransactionDO.getBranchId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new StoreException(e);
+        } finally {
+            IOUtil.close(ps, conn);
+        }
+    }
+
+    @Override
+    public boolean updateBranchTransactionDOHistory(BranchTransactionDO branchTransactionDO) {
+        String sql = LogStoreSqlsFactory.getLogStoreSqls(dbType).getUpdateBranchTransactionStatusSQL(branchTable + "_history");
         Connection conn = null;
         PreparedStatement ps = null;
         try {
