@@ -89,7 +89,7 @@
                         <executions>
                             <execution>
                                 <id>make-assembly</id>
-                                <phase>install</phase>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
@@ -97,7 +97,7 @@
                         </executions>
                     </plugin>
                 </plugins>
-                <finalName>seata</finalName>
+                <finalName>gzcb-seata</finalName>
             </build>
         </profile>
     </profiles>
