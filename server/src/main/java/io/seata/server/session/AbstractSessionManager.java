@@ -15,17 +15,21 @@
  */
 package io.seata.server.session;
 
+import io.seata.common.util.CollectionUtils;
 import io.seata.core.exception.BranchTransactionException;
 import io.seata.core.exception.GlobalTransactionException;
 import io.seata.core.exception.TransactionException;
 import io.seata.core.exception.TransactionExceptionCode;
 import io.seata.core.model.BranchStatus;
+import io.seata.core.model.BranchType;
 import io.seata.core.model.GlobalStatus;
 import io.seata.server.store.SessionStorable;
 import io.seata.server.store.TransactionStoreManager;
 import io.seata.server.store.TransactionStoreManager.LogOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * The type Abstract session manager.
@@ -119,6 +123,21 @@ public abstract class AbstractSessionManager implements SessionManager, SessionL
 
     @Override
     public void onStatusChange(GlobalSession globalSession, GlobalStatus status) throws TransactionException {
+        List<BranchSession> branchSessions = globalSession.getSortedBranches();
+        if (CollectionUtils.isNotEmpty(branchSessions)) {
+            for (BranchSession branchSession : branchSessions) {
+                // 只在TCC模式时处理一阶段状态
+                if (BranchType.TCC.equals(branchSession.getBranchType())) {
+                    if (GlobalStatus.Committing.equals(status)) {
+                        branchSession.setStatus(BranchStatus.PhaseOne_Done);
+                    } else if (GlobalStatus.Rollbacking.equals(status)) {
+                        branchSession.setStatus(BranchStatus.PhaseOne_Failed);
+                    }
+                    writeSession(LogOperation.BRANCH_UPDATE, branchSession);
+                }
+            }
+        }
+
         updateGlobalSessionStatus(globalSession, status);
     }
 
